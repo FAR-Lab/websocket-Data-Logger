@@ -11,7 +11,8 @@ var http = require('http');
 const uuidv4 = require('uuid/v4')
 var fs = require('fs');
 var mkdirp = require('mkdirp');
-
+var protobuf = require('protobufjs');
+const TestMessage = require('./testmessage_pb')
 
 var messageCount=0;
 var clientCount=0;
@@ -59,15 +60,25 @@ wsServer.on('request', function(client) {
   let outputQueue = [];
   keyValueLine.push(timeValueName);// the first value should always be time
 
+  var message = new proto.TestMessage();
+      message.setSometext('Hello Protocol Buffers')
+
+      var bytes = message.serializeBinary()
+      consolel.log(bytes);
+
+
   let writeStream = fs.createWriteStream(fileAdd, {flags: 'w'});
   clientCount++;
   let connection = client.accept(null, client.origin);
   console.log((new Date()) + ' Connection accepted.');
   connection.on('message', function(message){
+    console.log(message.type);
     if (message.type !== 'utf8') {
       return;
     }
     message = message.utf8Data;
+    console.log(message);
+    /*
     try{
       let incomingData = JSON.parse(message);
 
@@ -93,6 +104,7 @@ wsServer.on('request', function(client) {
     }catch(error){
       unidetifiedValues+=message+'\t'+error.toString()+',';
     }
+    */
 
   });
   connection.on('close', function(reasonCode, description) {
